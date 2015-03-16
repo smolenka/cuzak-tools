@@ -188,3 +188,26 @@ ForKeys = {
     'ZPMZ': [('katuze','katuze_kod','kod'),
              ('typsos','typsos_kod','kod')]
 }
+
+
+def createPK(table, cursor):
+    """ Udela primarni klic na dane tabulce podle info v dbconstraints.py """
+    try:
+        s = 'ALTER TABLE %s ADD CONSTRAINT %s_pk PRIMARY KEY(%s);'
+        tname = table.lower()
+        pks = PrimKeys[table]
+        cursor.execute(s % (tname, tname, ','.join(pks)))
+    except (IndexError, KeyError):
+        print 'table %s nema PK? Divne ...' % table
+
+
+def createFKs(table, cursor):
+    qtmp = 'ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s(%s)'
+    try:
+        keys = ForKeys[table]
+        for idx, k in enumerate(keys):
+            refTable, col, refCol = k
+            q = qtmp % (table.lower(), 'FK_%i' % idx, col, refTable, refCol)
+            cursor.execute(q)
+    except (IndexError, KeyError):
+        pass

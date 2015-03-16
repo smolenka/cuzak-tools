@@ -7,6 +7,9 @@ def Update_geom(points):
     return ','.join(strs)
 
 def AddGeometryL(schema, tab, cur):
+    q = "select AddGeometryColumn('%s','%s','geom%s',2065,'LINESTRING',2);" % (schema, tab, tab)
+    cur.execute(q)
+
     cur.execute('select id from %s' % tab)
     tab_ids=cur.fetchall()
 
@@ -27,6 +30,9 @@ def AddGeometryL(schema, tab, cur):
             print str(e)
 
 def AddGeometryP(schema,tab,tab_L,cur):
+    q = "select AddGeometryColumn('%s','%s','geom%s',2065,'POLYGON',2);" % (schema, tab, tab)
+    cur.execute(q)
+
     cur.execute('select id from %s' % tab)
     tab_ids=cur.fetchall()
     for p in tab_ids:
