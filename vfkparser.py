@@ -34,8 +34,11 @@ class BaseVFKParser(object):
                 self.onBlock(*self._make_blockinfo(line))
 
             elif linetype=='D':  # if radka obsahuje DATA
-                parts = line.split(';')
-                self.onData(parts[0], parts[1:])
+                if inBody:
+                    parts = line.split(';')
+                    self.onData(parts[0], parts[1:])
+                else:
+                    head.append(line)
 
 #     def _flushHead(self, head):
 #         # nevim proc radka pred touto Datovou neni uvozena jako B
