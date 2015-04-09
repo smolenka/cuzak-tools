@@ -42,10 +42,15 @@ PrimKeys = {
     'TYPUCA': ['kod'],
     'UCTYP': ['ucast_id','typuca_kod'],
     'RL': ['id'],
-    'OBESMF': [],
+#     'OBESMF': [],
     'SOBR': ['id'],
     'SBP': ['id'],
-    'SBM': [],
+    # NOTE: op_id jsem mel null a tim padem nesli ty data pridat
+    # tak uz neni primarni klic ...
+    # to same pro dpm_id,
+    # predpokladam, ze i pro ostatni krom poradove_cislo_bodu
+    # takze nema smysl mit pro SBM info o primarnich klicich 
+#     'SBM': ['poradove_cislo_bodu', 'dpm_id', 'hbpej_id'], # 'op_id'],
     'KODCHB': ['kod'],
     'TYPSOS': ['kod'],
     'HP': ['id'],
