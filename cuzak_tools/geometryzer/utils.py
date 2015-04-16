@@ -16,3 +16,9 @@ def pointListString(points):
         # minusy protoze zaporny krovak
         strs.append('-%s -%s' % (p[0], p[1]))
     return ','.join(strs)
+
+def lines2LineString(points):
+    """
+    Z paru bodu v tuples udela Linestring 
+    """
+    return 'LINESTRING(%s)' % pointListString(points)
