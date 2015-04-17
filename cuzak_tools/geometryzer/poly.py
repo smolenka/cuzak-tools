@@ -1,35 +1,29 @@
 
-def createPolygonGeometry(parcelID, tab, tab_L, cur):
-    cur.execute(_polygonizeQ, (parcelID, parcelID))
+def createPolygonGeometry(multilinie, cur):
+    """
+    """
+    cur.execute("""
+    SELECT ST_AsGeoJson(ST_Polygonize(ST_GeomFromGeoJSON(%s)))
+    """, (multilinie, ))
     moznePolygony = cur.fetchone()[0]
-    cur.execute(_pocetQ, (moznePolygony, ))
+    
+    cur.execute("""
+    SELECT ST_NumGeometries(ST_GeomFromGeoJSON(%s))
+    """, (moznePolygony, ))
     pocet = cur.fetchone()[0]
+    
     if pocet > 1:
         idx = _najdiTenSpravnyNeDiru(moznePolygony, pocet, cur)
-        cur.execute(_updateQ, (moznePolygony, idx, str(parcelID)))
     else:
-        cur.execute(_updateQ, (moznePolygony, 1, str(parcelID)))
+        idx = 1
+        
+    cur.execute("""
+    SELECT ST_AsGeoJson(ST_GeometryN(ST_GeomFromGeoJSON(%s), %s))
+    """, (moznePolygony, idx))
+        
+    return cur.fetchone()[0]
             
 # -------------------------- private funcs ------------------------------
-_updateQ = """
-UPDATE parcely
-SET geom = ST_SetSRID(ST_GeometryN(ST_GeomFromGeoJSON(%s), %s), 2065)
-WHERE zdrojid = %s
-"""
-
-_polygonizeQ = """
-SELECT ST_AsGeoJson(ST_Polygonize(seznamlinii.multip)) as pol FROM (
-    SELECT ST_Multi(ST_Collect(linie.jakotext)) as multip FROM (
-        SELECT ST_AsText(geom) as jakotext FROM lines as l WHERE zdroj = 0 AND zdrojid IN (
-            select text(id) as idckalinii from hp where par_id_1 = %s OR par_id_2 = %s
-        )
-    ) AS linie
-) AS seznamlinii
-"""
-
-_pocetQ = """
-SELECT ST_NumGeometries(ST_GeomFromGeoJSON(%s))
-"""
 
 def _najdiTenSpravnyNeDiru(moznePolygony, jejichPocet, cur):
     moznosti = range(jejichPocet)
