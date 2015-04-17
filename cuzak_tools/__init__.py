@@ -1,18 +1,26 @@
 
 import codecs
+import psycopg2
 from importer import ChangesSolvingImportVFKParser
 
 
-def removeExistingTables(cursor, schema):
+def removeExistingTables(conn, schema):
     print "Deleting tables..."
-
-    q = "select tablename from pg_tables where schemaname=%s"
-    cursor.execute(q, (schema, ))
-    tables=cursor.fetchall()
-
-    for table in tables:
-        if not table[0] in ('spatial_ref_sys', 'geometry_columns'):
-            cursor.execute("DROP TABLE %s cascade;" % table[0])
+    cursor = conn.cursor()
+    try:
+        q = "select tablename from pg_tables where schemaname=%s"
+        cursor.execute(q, (schema, ))
+        tables=cursor.fetchall()
+    
+        for table in tables:
+            if not table[0] in ('spatial_ref_sys', 'geometry_columns'):
+                cursor.execute("DROP TABLE %s cascade;" % table[0])
+        conn.commit()
+    except psycopg2.Error, e:
+        print str(e)
+        conn.rollback()
+    finally:
+        cursor.close()
 
 def parse(file_name, cur):
     # parse input file and fill the DB
