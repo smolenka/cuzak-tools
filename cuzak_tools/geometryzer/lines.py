@@ -9,13 +9,16 @@ def addLinesGeometry(schema, tab, cur):
     for i in cur.fetchall():
         _solveLine(i[0], tab, cur)
         
-def addLine(points, zdroj, zdrojid, cur):
-    sqlt="""INSERT INTO lines (geom, zdroj, zdrojid)
-    VALUES (ST_GeomFromText('LINESTRING(%s)',2065), %i, '%s')
-    RETURNING id
+def addLine(points, attrs, cur):
+    q = """INSERT INTO lines (geom, %s) VALUES (
+        ST_GeomFromText('LINESTRING(%s)',2065), %s
+    ) RETURNING id
     """
+    attsconcat = ','.join([a for a in attrs.keys()])
+    substitutes = ','.join(['%s' for _ in range(len(attrs))])
+    query = q % (attsconcat, utils.pointListString(points), substitutes)
     try:
-        cur.execute(sqlt % (utils.pointListString(points), zdroj, zdrojid))
+        cur.execute(query, attrs.values())
         return cur.fetchone()[0]
     except Exception, e:
         print str(e)
@@ -38,7 +41,7 @@ def _solveLine(itemid, tab, cur):
     if len(rows) > 2:
         _solveMultiline(itemid, cur)
     else:
-        addLine(rows, 0, itemid, cur)
+        addLine(rows, {'zdroj': 0, 'zdrojid': itemid }, cur)
     
 def _solveMultiline(itemid, cur):
     print 'WARN: multiline: %s' % itemid
@@ -50,6 +53,8 @@ def _solveMultiline(itemid, cur):
     cur.execute(q, (itemid, ))
     points = cur.fetchall()
     for idx in range(len(points)-1):
-        addLine([points[idx], points[idx+1]], 0, itemid, cur)
+        addLine([points[idx], points[idx+1]], {
+            'zdroj': 0, 'zdrojid': itemid
+        }, cur)
         
 
