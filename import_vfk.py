@@ -3,15 +3,17 @@ import sys
 import os
 import psycopg2
 import cuzak_tools
+import logging
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
 
     schema = os.environ.get('DATABASE_SCHEMA', 'public')
     try:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
     except Exception, e:
-        print "Unable to connect to da database ..."
+        logging.error("Unable to connect to da database ...")
         raise e
 
     cur = conn.cursor()

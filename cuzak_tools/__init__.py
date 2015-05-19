@@ -1,23 +1,24 @@
 
+import logging
 import codecs
 import psycopg2
 from importer import ChangesSolvingImportVFKParser
 
 
 def removeExistingTables(conn, schema):
-    print "Deleting tables..."
+    logging.info("Deleting tables...")
     cursor = conn.cursor()
     try:
         q = "select tablename from pg_tables where schemaname=%s"
         cursor.execute(q, (schema, ))
         tables=cursor.fetchall()
-    
+
         for table in tables:
             if not table[0] in ('spatial_ref_sys', 'geometry_columns'):
                 cursor.execute("DROP TABLE %s cascade;" % table[0])
         conn.commit()
     except psycopg2.Error, e:
-        print str(e)
+        logging.exception(e)
         conn.rollback()
     finally:
         cursor.close()

@@ -6,23 +6,23 @@ def createPolygonGeometry(multilinie, cur):
     SELECT ST_AsGeoJson(ST_Polygonize(ST_GeomFromGeoJSON(%s)))
     """, (multilinie, ))
     moznePolygony = cur.fetchone()[0]
-    
+
     cur.execute("""
     SELECT ST_NumGeometries(ST_GeomFromGeoJSON(%s))
     """, (moznePolygony, ))
     pocet = cur.fetchone()[0]
-    
+
     if pocet > 1:
         idx = _najdiTenSpravnyNeDiru(moznePolygony, pocet, cur)
     else:
         idx = 1
-        
+
     cur.execute("""
     SELECT ST_AsGeoJson(ST_GeometryN(ST_GeomFromGeoJSON(%s), %s))
     """, (moznePolygony, idx))
-        
+
     return cur.fetchone()[0]
-            
+
 # -------------------------- private funcs ------------------------------
 
 def _najdiTenSpravnyNeDiru(moznePolygony, jejichPocet, cur):
@@ -37,12 +37,13 @@ SELECT ST_Within(
   ST_MakePolygon(ST_ExteriorRing(ST_GeometryN(ST_GeomFromGeoJSON(%s), %s)))
 )
             """
-            cur.execute(q, (moznePolygony, i+1, moznePolygony, testovany+1))
-#             print cur.mogrify(q, (moznePolygony, i+1, moznePolygony, testovany+1))
+            pars = (moznePolygony, i+1, moznePolygony, testovany+1)
+            cur.execute(q, pars)
+#           print cur.mogrify(q, pars)
             jeUvnitr = cur.fetchone()[0]
             if not jeUvnitr:
                 obsahujeOstatni = False
         if obsahujeOstatni:
             return testovany + 1
     return moznosti.pop() + 1
-        
+

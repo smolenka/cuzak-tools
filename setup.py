@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-import os
 
 setup(name='cuzak-tools',
-    version='0.0.3',
+    version='0.1.0',
     description='''
     Parser VFK souboru a konverter jejich obsahu do PostGIS databaze
     ''',

@@ -1,3 +1,4 @@
+import logging
 
 PrimKeys = {
     'PAR': ['id'],
@@ -49,7 +50,7 @@ PrimKeys = {
     # tak uz neni primarni klic ...
     # to same pro dpm_id,
     # predpokladam, ze i pro ostatni krom poradove_cislo_bodu
-    # takze nema smysl mit pro SBM info o primarnich klicich 
+    # takze nema smysl mit pro SBM info o primarnich klicich
 #     'SBM': ['poradove_cislo_bodu', 'dpm_id', 'hbpej_id'], # 'op_id'],
     'KODCHB': ['kod'],
     'TYPSOS': ['kod'],
@@ -203,7 +204,7 @@ def createPK(table, cursor):
         pks = PrimKeys[table]
         cursor.execute(s % (tname, tname, ','.join(pks)))
     except (IndexError, KeyError):
-        print 'table %s nema PK? Divne ...' % table
+        logging.warn('table %s nema PK? Divne ...' % table)
 
 
 def createFKs(table, cursor):

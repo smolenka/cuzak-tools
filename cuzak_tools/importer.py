@@ -1,3 +1,5 @@
+
+import logging
 import dbconstraints
 from vfkparser import BaseVFKParser
 from datetime import datetime
@@ -30,7 +32,7 @@ class ImportVFKParser(BaseVFKParser):
             self._insertNew(table, data)
             self._cursor.connection.commit()
         except Exception, e:
-            print str(e)
+            logging.exception(e)
             self._cursor.connection.rollback()
 
     def _sqlVal(self, val, colinfo):
@@ -68,7 +70,7 @@ class ImportVFKParser(BaseVFKParser):
             dbconstraints.createPK(table, self._cursor)
 #             dbconstraints.createFKs(table, self._cursor)
         except Exception, e:
-            print str(e)
+            logging.exception(e)
 
     def _updateTable(self, table, existingCols, colsInfo):
         aq = "ALTER TABLE %s ADD COLUMN %s %s;"
@@ -79,17 +81,17 @@ class ImportVFKParser(BaseVFKParser):
         for c in colsInfo:
             if not _contains(c[0].lower()):
                 self._cursor.execute(aq % (table.lower(), c[0].lower(), self._colType(c)))
-                
+
     def _insertNew(self, table, data):
         val_strings = []
         for idx, val in enumerate(data):
             val_strings.append(self._sqlVal(val, self.currColinfo[idx]))
         q = 'INSERT INTO %s VALUES(%s);' % (table.lower(), ','.join(val_strings))
         self._cursor.execute(q)
-        
-    
+
+
 class ChangesSolvingImportVFKParser(ImportVFKParser):
-    
+
     def onData(self, table, data):
         existing = self._getExisting(table, data)
         try:
@@ -99,7 +101,7 @@ class ChangesSolvingImportVFKParser(ImportVFKParser):
                 self._solveDifferences(table, data, existing)
             self._cursor.connection.commit()
         except Exception, e:
-            print str(e)
+            logging.exception(e)
             self._cursor.connection.rollback()
 
     def _getExisting(self, table, data):
@@ -123,7 +125,7 @@ class ChangesSolvingImportVFKParser(ImportVFKParser):
     def _columnOrd(self, col):
         for idx, c in enumerate(self.currColinfo):
             if c[0].lower() == col:
-                return idx    
+                return idx
 
     def _solveDifferences(self, table, data, existing):
         changes = {}
@@ -134,7 +136,7 @@ class ChangesSolvingImportVFKParser(ImportVFKParser):
         self._odstranBlbosti(changes)
         if len(changes) > 0 and hasattr(self, 'onChanges'):
             self.onChanges(table, changes)
-            
+
     def _odstranBlbosti(self, changes):
         """ odstran blbost, ktere se tvari jako zmeny, ale nejsou """
         for col, diff in changes.items():
