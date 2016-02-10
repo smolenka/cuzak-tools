@@ -7,7 +7,6 @@ from decimal import Decimal
 
 
 class ImportVFKParser(BaseVFKParser):
-    schema = 'public'
 
     def onHead(self, head):
         pass
@@ -63,30 +62,31 @@ class ImportVFKParser(BaseVFKParser):
         cols = []
         for c in colsInfo:
             cols.append('%s %s' % (c[0].lower(), self._colType(c)))
-        sql='CREATE TABLE %s (%s);' % (table.lower(), ','.join(cols))
+        sql='CREATE TABLE %s.%s (%s);' % (self.schema, table.lower(), ','.join(cols))
 
         try:
+            logging.info('creating table %s' % table)
             self._cursor.execute(sql)   # SQL dotaz vytvori prazdnou tabulku
-            dbconstraints.createPK(table, self._cursor)
+            dbconstraints.createPK(table, self._cursor, self.schema)
 #             dbconstraints.createFKs(table, self._cursor)
         except Exception, e:
             logging.exception(e)
 
     def _updateTable(self, table, existingCols, colsInfo):
-        aq = "ALTER TABLE %s ADD COLUMN %s %s;"
+        aq = "ALTER TABLE %s.%s ADD COLUMN %s %s;"
         def _contains(col):
             for c in existingCols:
                 if c[0] == col: return True
             return False
         for c in colsInfo:
             if not _contains(c[0].lower()):
-                self._cursor.execute(aq % (table.lower(), c[0].lower(), self._colType(c)))
+                self._cursor.execute(aq % (self.schema, table.lower(), c[0].lower(), self._colType(c)))
 
     def _insertNew(self, table, data):
         val_strings = []
         for idx, val in enumerate(data):
             val_strings.append(self._sqlVal(val, self.currColinfo[idx]))
-        q = 'INSERT INTO %s VALUES(%s);' % (table.lower(), ','.join(val_strings))
+        q = 'INSERT INTO %s.%s VALUES(%s);' % (self.schema, table.lower(), ','.join(val_strings))
         self._cursor.execute(q)
 
 
@@ -116,7 +116,7 @@ class ChangesSolvingImportVFKParser(ImportVFKParser):
                 colInfoIdx = self._columnOrd(pk) # poradi sloupecku
                 val = self._sqlVal(data[colInfoIdx], self.currColinfo[colInfoIdx])
                 constrs.append("%s=%s" % (pk, val))
-            q = "SELECT * FROM %s WHERE %s" % (table, ' AND '.join(constrs))
+            q = "SELECT * FROM %s.%s WHERE %s" % (self.schema, table, ' AND '.join(constrs))
             self._cursor.execute(q)
             return self._cursor.fetchone()
         except (KeyError):

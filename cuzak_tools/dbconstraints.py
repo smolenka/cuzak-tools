@@ -196,19 +196,20 @@ ForKeys = {
 }
 
 
-def createPK(table, cursor):
+def createPK(table, cursor, schema='public'):
     """ Udela primarni klic na dane tabulce podle info v dbconstraints.py """
     try:
-        s = 'ALTER TABLE %s ADD CONSTRAINT %s_pk PRIMARY KEY(%s);'
+        s = 'ALTER TABLE %s.%s ADD CONSTRAINT %s_pk PRIMARY KEY(%s);'
         tname = table.lower()
         pks = PrimKeys[table]
-        cursor.execute(s % (tname, tname, ','.join(pks)))
+        cursor.execute(s % (schema, tname, tname, ','.join(pks)))
     except (IndexError, KeyError):
         logging.warn('table %s nema PK? Divne ...' % table)
 
 
-def createFKs(table, cursor):
-    qtmp = 'ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s(%s)'
+def createFKs(table, cursor, schema='public'):
+    """ actually not used """
+    qtmp = 'ALTER TABLE %s.%s ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s(%s)'
     try:
         keys = ForKeys[table]
         for idx, k in enumerate(keys):

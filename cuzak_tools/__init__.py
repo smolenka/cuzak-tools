@@ -5,6 +5,19 @@ import psycopg2
 from importer import ChangesSolvingImportVFKParser
 
 
+def createSchema(conn, schema):
+    cursor = conn.cursor()
+    try:
+        logging.info("ensuring existence schema %s..." % schema)
+        cursor.execute("CREATE SCHEMA IF NOT EXISTS %s" % schema)
+        conn.commit()
+    except psycopg2.Error, e:
+        logging.exception(e)
+        conn.rollback()
+    finally:
+        cursor.close()
+    
+
 def removeExistingTables(conn, schema):
     logging.info("Deleting tables...")
     cursor = conn.cursor()
@@ -23,8 +36,8 @@ def removeExistingTables(conn, schema):
     finally:
         cursor.close()
 
-def parse(file_name, cur):
+def parse(file_name, cur, schema='public'):
     # parse input file and fill the DB
     with codecs.open(file_name, encoding='iso-8859-2') as f:
-        ChangesSolvingImportVFKParser(f, cur)
+        ChangesSolvingImportVFKParser(f, cur, schema)
 

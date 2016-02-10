@@ -5,10 +5,11 @@ class BaseVFKParser(object):
     vyvola patricnou metodu implementovanou v potomeku teto tridy.
     """
 
-    def __init__(self, streamin, cursor):
+    def __init__(self, streamin, cursor, schema='public'):
         self._sin = streamin
         self._cursor = cursor
         self._linenum = 0
+        self.schema = schema.lower()
         self._parse()
 
     def _parse(self):

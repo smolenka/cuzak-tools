@@ -9,12 +9,14 @@ import logging
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    schema = os.environ.get('DATABASE_SCHEMA', 'public')
     try:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
     except Exception, e:
         logging.error("Unable to connect to da database ...")
         raise e
+
+    schema = os.environ.get('DATABASE_SCHEMA', 'public')
+    cuzak_tools.createSchema(conn, schema)
 
     cur = conn.cursor()
 
@@ -24,4 +26,6 @@ if __name__ == "__main__":
         cuzak_tools.removeExistingTables(cur, schema)
         conn.commit()
 
-    cuzak_tools.parse(sys.argv[1], cur)
+    cuzak_tools.parse(sys.argv[1], cur, schema)
+
+    logging.error("done ...")
